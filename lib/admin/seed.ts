@@ -29,6 +29,7 @@ export const seedProducts: AdminProduct[] = products.map((product) => ({
 export const seedTestimonials: AdminTestimonial[] = testimonials.map((testimonial, index) => ({
   id: `testimonio-${index + 1}`,
   ...testimonial,
+  image: '',
   published: true,
   ...stamps,
 }))

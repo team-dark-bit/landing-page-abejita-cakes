@@ -29,6 +29,7 @@ export type AdminTestimonial = BaseEntity & {
   occasion: string
   rating: number
   text: string
+  image: string
   published: boolean
 }
 
