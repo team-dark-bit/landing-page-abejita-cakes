@@ -1,13 +1,14 @@
 import { z } from 'zod'
 
-const imagePath = z
+const isImagePath = (value: string) => value.startsWith('/') || /^https:\/\/\S+$/.test(value)
+const imagePathMessage = 'Usa una ruta local (/images/...) o una URL https://'
+
+const imagePath = z.string().trim().min(1, 'Agrega una imagen').refine(isImagePath, imagePathMessage)
+
+const optionalImagePath = z
   .string()
   .trim()
-  .min(1, 'Agrega una imagen')
-  .refine(
-    (value) => value.startsWith('/') || /^https:\/\/\S+$/.test(value),
-    'Usa una ruta local (/images/...) o una URL https://',
-  )
+  .refine((value) => value === '' || isImagePath(value), imagePathMessage)
 
 export const productSchema = z.object({
   name: z.string().trim().min(3, 'Mínimo 3 caracteres').max(80, 'Máximo 80 caracteres'),
@@ -48,6 +49,7 @@ export const testimonialSchema = z.object({
     .min(1, 'Mínimo 1 estrella')
     .max(5, 'Máximo 5 estrellas'),
   text: z.string().trim().min(20, 'Mínimo 20 caracteres').max(400, 'Máximo 400 caracteres'),
+  image: optionalImagePath,
   published: z.boolean(),
 })
 

@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { MessageSquareQuote, Pencil, Plus, SearchX, Star, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { FormField } from '@/components/admin/form-field'
+import { ImageField } from '@/components/admin/image-field'
+import { gallery } from '@/lib/data'
 import {
   ConfirmDeleteDialog,
   EmptyState,
@@ -40,6 +42,8 @@ import { cn } from '@/lib/utils'
 
 type StatusFilter = 'all' | 'published' | 'hidden'
 
+const GALLERY_SUGGESTIONS = gallery.map((item) => item.src)
+
 function Stars({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-0.5" aria-label={`${rating} de 5 estrellas`}>
@@ -50,6 +54,31 @@ function Stars({ rating }: { rating: number }) {
           aria-hidden="true"
         />
       ))}
+    </span>
+  )
+}
+
+function Initial({ name, className }: { name: string; className?: string }) {
+  return (
+    <span
+      className={cn('font-serif font-semibold text-foreground', className)}
+      aria-hidden="true"
+    >
+      {name.trim().charAt(0).toUpperCase() || '?'}
+    </span>
+  )
+}
+
+function ClientAvatar({ name, image }: { name: string; image?: string }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary">
+      {image && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={image} alt="" className="size-full object-cover" onError={() => setFailed(true)} />
+      ) : (
+        <Initial name={name} />
+      )}
     </span>
   )
 }
@@ -198,9 +227,12 @@ export function TestimonialsManager() {
               {filtered.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="pl-4">
-                    <div className="flex min-w-40 flex-col">
-                      <span className="font-semibold">{item.name}</span>
-                      <span className="text-xs text-muted-foreground">{item.occasion}</span>
+                    <div className="flex min-w-48 items-center gap-3">
+                      <ClientAvatar key={item.image} name={item.name} image={item.image} />
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{item.name}</span>
+                        <span className="text-xs text-muted-foreground">{item.occasion}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -286,6 +318,7 @@ function TestimonialForm({
     occasion: testimonial?.occasion ?? '',
     rating: testimonial ? String(testimonial.rating) : '5',
     text: testimonial?.text ?? '',
+    image: testimonial?.image ?? '',
     published: testimonial?.published ?? true,
   })
 
@@ -352,6 +385,18 @@ function TestimonialForm({
           onChange={(e) => setField('text', e.target.value)}
         />
       </FormField>
+      <ImageField
+        id="t-image"
+        label="Foto del cliente (opcional)"
+        value={values.image}
+        onChange={(v) => setField('image', v)}
+        error={errors.image}
+        hint="Ruta local (/images/...) o URL https://. Sin foto se muestra la inicial."
+        suggestions={GALLERY_SUGGESTIONS}
+        previewAlt={`Foto de ${values.name || 'cliente'}`}
+        shape="circle"
+        fallback={<Initial name={values.name} className="text-2xl" />}
+      />
       <SwitchRow id="t-published" label="Publicado" description="Visible en la página de inicio">
         <Switch id="t-published" checked={values.published} onCheckedChange={(v) => setField('published', v)} />
       </SwitchRow>
