@@ -1,12 +1,11 @@
 import 'server-only'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { SESSION_COOKIE } from './config'
-import { verifySessionToken } from './session'
+import { createClient } from '@/lib/supabase/server'
 
 export async function getAdminSession() {
-  const store = await cookies()
-  return verifySessionToken(store.get(SESSION_COOKIE)?.value)
+  const supabase = await createClient()
+  const { data } = await supabase.auth.getUser()
+  return data.user ? { email: data.user.email ?? '' } : null
 }
 
 export async function requireAdminSession() {

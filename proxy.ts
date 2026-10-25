@@ -1,23 +1,28 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { SESSION_COOKIE } from '@/lib/auth/config'
-import { verifySessionToken } from '@/lib/auth/session'
+import { updateSession } from '@/lib/supabase/proxy'
+
+function redirectWithCookies(url: URL, from: NextResponse) {
+  const redirect = NextResponse.redirect(url)
+  from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+  return redirect
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  const session = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)
+  const { user, response } = await updateSession(request)
   const isLogin = pathname === '/admin/login'
 
-  if (isLogin && session) {
-    return NextResponse.redirect(new URL('/admin', request.url))
+  if (isLogin && user) {
+    return redirectWithCookies(new URL('/admin', request.url), response)
   }
 
-  if (!isLogin && !session) {
+  if (!isLogin && !user) {
     const loginUrl = new URL('/admin/login', request.url)
     if (pathname !== '/admin') loginUrl.searchParams.set('from', `${pathname}${search}`)
-    return NextResponse.redirect(loginUrl)
+    return redirectWithCookies(loginUrl, response)
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {

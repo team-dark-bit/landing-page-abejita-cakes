@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from '@/components/admin/login-form'
 import { Logo } from '@/components/logo'
-import { devCredentialsHint, safeAdminRedirect } from '@/lib/auth/config'
+import { safeAdminRedirect } from '@/lib/auth/config'
 
 export const metadata: Metadata = { title: 'Iniciar sesión' }
 
@@ -26,7 +26,7 @@ export default async function LoginPage({
             </p>
           </div>
         </div>
-        <LoginForm from={safeAdminRedirect(from)} devHint={devCredentialsHint} />
+        <LoginForm from={safeAdminRedirect(from)} />
       </div>
       <Link
         href="/"

@@ -9,10 +9,9 @@ import { Input } from '@/components/ui/input'
 
 type Props = {
   from: string
-  devHint: { email: string; password: string } | null
 }
 
-export function LoginForm({ from, devHint }: Props) {
+export function LoginForm({ from }: Props) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(loginAction, {})
 
   return (
@@ -58,14 +57,6 @@ export function LoginForm({ from, devHint }: Props) {
         {pending && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
         {pending ? 'Ingresando…' : 'Ingresar'}
       </Button>
-
-      {devHint && (
-        <p className="rounded-xl bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
-          Modo desarrollo: usa <span className="font-semibold text-foreground">{devHint.email}</span> /{' '}
-          <span className="font-semibold text-foreground">{devHint.password}</span>. En producción
-          configura <code>ADMIN_EMAIL</code>, <code>ADMIN_PASSWORD</code> y <code>ADMIN_SESSION_SECRET</code>.
-        </p>
-      )}
     </form>
   )
 }
