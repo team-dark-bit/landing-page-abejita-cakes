@@ -1,4 +1,5 @@
 import { SiteHeader } from '@/components/site-header'
+import { getFaqs } from '@/lib/api/faqs'
 import { Hero } from '@/components/hero'
 import { Catalog } from '@/components/catalog'
 import { Gallery } from '@/components/gallery'
@@ -8,7 +9,15 @@ import { Faq } from '@/components/faq'
 import { SiteFooter } from '@/components/site-footer'
 import { WhatsappFloat } from '@/components/whatsapp-float'
 
-export default function Page() {
+// FAQ data is fetched live from the API on every request (no cache).
+export const dynamic = 'force-dynamic'
+
+export default async function Page() {
+  const faqs = await getFaqs().catch((error) => {
+    console.error(error)
+    return []
+  })
+
   return (
     <>
       <SiteHeader />
@@ -18,7 +27,7 @@ export default function Page() {
         <Gallery />
         <Testimonials />
         <Contact />
-        <Faq />
+        <Faq items={faqs} />
       </main>
       <SiteFooter />
       <WhatsappFloat />

@@ -10,6 +10,9 @@ __v0_jsx-dev-runtime.ts
 # Environment variables
 .env*.local
 
+# Local docs / scratch notes
+docs/
+
 # Common ignores
 node_modules
 .next/

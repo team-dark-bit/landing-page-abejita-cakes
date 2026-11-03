@@ -246,30 +246,3 @@ export const testimonials: Testimonial[] = [
     text: 'Encargué la torta floral para mi mamá y se emocionó muchísimo. Atención muy amable y rápida.',
   },
 ]
-
-export const faqs = [
-  {
-    q: '¿Con cuánta anticipación debo pedir?',
-    a: 'Para tortas clásicas y bocaditos, te recomendamos pedir con 2 a 3 días de anticipación. Para tortas personalizadas, mesas dulces y matrimonios, idealmente entre 1 y 2 semanas para asegurar tu fecha.',
-  },
-  {
-    q: '¿Hacen productos sin azúcar o sin gluten?',
-    a: 'Sí. Preparamos tortas endulzadas con stevia y algunas opciones sin gluten con harina de almendras. Trabajamos en una cocina compartida, por lo que no garantizamos ausencia total de trazas. Consúltanos por WhatsApp.',
-  },
-  {
-    q: '¿Aceptan pedidos urgentes?',
-    a: 'Según disponibilidad, aceptamos pedidos para el mismo día o el día siguiente de tortas clásicas y bocaditos. Escríbenos por WhatsApp y te confirmamos en minutos.',
-  },
-  {
-    q: '¿Cómo conservar las tortas y bocaditos?',
-    a: 'Mantén las tortas refrigeradas y sácalas 20 minutos antes de servir. Los bocaditos salados se disfrutan mejor el mismo día; si sobran, guárdalos en un recipiente hermético en refrigeración por hasta 2 días.',
-  },
-  {
-    q: '¿Hacen delivery?',
-    a: 'Sí, realizamos delivery en Huamanga, Carmen Alto, San Juan Bautista y Jesús Nazareno. El costo varía entre S/ 5 y S/ 10 según la zona. También puedes recoger tu pedido en nuestro taller.',
-  },
-  {
-    q: '¿Cómo se realiza el pago?',
-    a: 'Separamos tu pedido con el 50 % de adelanto por Yape, Plin o transferencia, y el saldo se cancela al momento de la entrega.',
-  },
-]
