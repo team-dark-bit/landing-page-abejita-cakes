@@ -10,7 +10,8 @@ export interface Repository<T extends BaseEntity> {
   create(input: EntityInput<T>): Promise<T>
   update(id: string, input: Partial<EntityInput<T>>): Promise<T>
   remove(id: string): Promise<void>
-  reset(): Promise<void>
+  /** Solo para repositorios con datos locales de ejemplo. */
+  reset?(): Promise<void>
 }
 
 const STORAGE_PREFIX = 'abejita-admin:v1:'

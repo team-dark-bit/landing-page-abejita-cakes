@@ -44,7 +44,7 @@ export function useResource<N extends ResourceName>(name: N) {
 }
 
 export async function resetAllResources() {
-  await Promise.all(Object.values(repositories).map((repo) => repo.reset()))
+  await Promise.all(Object.values(repositories).map((repo) => repo.reset?.()))
   await Promise.all(
     (Object.keys(repositories) as ResourceName[]).map((name) => globalMutate(swrKey(name))),
   )

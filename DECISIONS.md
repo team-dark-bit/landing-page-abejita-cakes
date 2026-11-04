@@ -91,15 +91,15 @@ bloqueante.
 
 **Fecha:** 2026-11
 
-**Contexto:** las FAQs del sitio público pasaron de `lib/data.ts` a la API real.
+**Contexto:** las FAQs del sitio público pasaron de `lib/data.ts` a la API real, y luego
+también el panel admin.
 
-**Decisión:** se eliminó el array mock de FAQs. El seed del panel admin se mantuvo como
-literales, porque `/admin/faqs` todavía persiste en `localStorage`.
+**Decisión:** se eliminó el array mock de FAQs (`lib/data.ts`) y después el seed de FAQs
+(`lib/admin/seed.ts`), al migrar `/admin/faqs` a la API.
 
-**Consecuencia:** una sola fuente de verdad para el sitio público.
+**Consecuencia:** una sola fuente de verdad para las FAQs: la API.
 
-**Cuándo revisar:** al migrar el admin a la API; en ese momento el seed de FAQs deja de
-tener sentido.
+**Cuándo revisar:** ya aplicado; no queda deuda pendiente en este punto.
 
 ---
 
@@ -107,13 +107,36 @@ tener sentido.
 
 **Fecha:** 2026-11
 
-**Contexto:** el admin hoy persiste en `localStorage`, pero el destino es el backend real.
+**Contexto:** el admin persiste productos, categorías y testimonios en `localStorage`,
+pero el destino es el backend real.
 
 **Decisión:** la UI consume la interfaz `Repository` (`lib/admin/repository.ts`); cambiar
-la implementación no requiere tocar componentes.
+la implementación no requiere tocar componentes. `reset()` es opcional, para que los
+repositorios respaldados por API no expongan una restauración local inexistente.
 
-**Consecuencia:** migrar a la API es reemplazar las instancias en
-`lib/admin/repositories.ts`.
+**Consecuencia:** migrar los recursos restantes es reemplazar las instancias en
+`lib/admin/repositories.ts`. Las FAQs ya usan API y no implementan `reset`.
+
+---
+
+## D-007 · Proxy server-side para las escrituras del admin
+
+**Fecha:** 2026-11
+
+**Contexto:** los endpoints `/api/v1/admin/**` exigen un access token de Supabase, y el
+panel es interactivo (Client Components con SWR).
+
+**Decisión:** el navegador llama a rutas propias (`/api/admin/faqs`, `/api/admin/faqs/[id]`)
+y un handler común (`lib/api/admin-proxy.ts`) lee la sesión de Supabase, adjunta
+`Authorization: Bearer …` y reenvía al backend.
+
+**Alternativas:** llamar al backend directo desde el cliente (expondría la URL y el token
+a JavaScript, y requeriría CORS); Server Actions (acoplaría el CRUD al formulario, sin
+reutilizar la interfaz `Repository`).
+
+**Consecuencia:** el token nunca llega al navegador; las llamadas visibles en DevTools son
+al propio origen y no llevan `Authorization`. Los errores del backend se normalizan a
+`{ error: { code, message, details } }`.
 
 ---
 
@@ -121,5 +144,7 @@ la implementación no requiere tocar componentes.
 
 - **D-003:** definir el umbral de tráfico o de cold starts que justifique reintroducir caché.
 - **D-003:** implementar el tag `faqs` y el endpoint de revalidación cuando se retome.
-- **D-005:** migrar `/admin/faqs` a la API y retirar el seed de FAQs.
+- **D-006:** migrar productos, categorías y testimonios a la API; luego retirar
+  `lib/admin/seed.ts` y `createLocalStorageRepository`, que quedarían sin uso.
+- **FAQs:** implementar `PUT /api/v1/admin/faqs/order` si se agrega reordenamiento en la UI.
 - **Higiene:** `docs/` está en `.gitignore`; decidir si la documentación auxiliar debe versionarse.
