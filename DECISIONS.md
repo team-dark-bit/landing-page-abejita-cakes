@@ -140,11 +140,42 @@ al propio origen y no llevan `Authorization`. Los errores del backend se normali
 
 ---
 
+## D-008 · Testimonios migrados a la API, con subida directa de imágenes
+
+**Fecha:** 2026-11
+
+**Contexto:** los testimonios eran el último recurso público que seguía leyendo el
+array mock de `lib/data.ts`, y el admin los guardaba en `localStorage`. El contrato
+(sección 2.4 del `backend-spec.md`) incluye una foto opcional por testimonio.
+
+**Decisión:** la landing consume `GET /api/v1/testimonials?limit=6` desde el servidor
+(`lib/api/testimonials.ts`) y, si la API falla o no hay publicados, la sección no se
+renderiza. El admin usa el mismo patrón que FAQs (proxy `/api/admin/testimonials`).
+La foto se sube directo a Supabase Storage: `POST /api/admin/uploads/sign` firma,
+el navegador hace `PUT` a la URL firmada y se guarda `publicUrl` en `image`.
+
+**Alternativas:** seguir aceptando rutas locales (`/images/...`) — incompatible con la
+validación del backend, que solo admite URLs del bucket; subir binarios a través del
+proxy de Next — evita el beneficio de la URL firmada y suma límites de tamaño.
+
+**Consecuencia:** se retiraron `testimonials` de `lib/data.ts` y del seed local. El
+formulario implementa los tres estados de `image` del contrato (ausente conserva,
+`null` borra, URL reemplaza) para no disparar borrados accidentales. El front nunca
+borra objetos del bucket: la limpieza la hace el backend (2.7.1); si una subida queda
+huérfana al cancelar el formulario, se descarta con `DELETE /admin/uploads`.
+
+**Cuándo revisar:** si se agrega reordenamiento o filtros server-side, o si se migran
+productos y categorías.
+
+---
+
 ## Pendientes vinculados a decisiones
 
 - **D-003:** definir el umbral de tráfico o de cold starts que justifique reintroducir caché.
 - **D-003:** implementar el tag `faqs` y el endpoint de revalidación cuando se retome.
-- **D-006:** migrar productos, categorías y testimonios a la API; luego retirar
-  `lib/admin/seed.ts` y `createLocalStorageRepository`, que quedarían sin uso.
+- **D-006:** migrar productos y categorías a la API; luego retirar `lib/admin/seed.ts`
+  y `createLocalStorageRepository`, que quedarían sin uso.
 - **FAQs:** implementar `PUT /api/v1/admin/faqs/order` si se agrega reordenamiento en la UI.
+- **Testimonios:** evaluar filtros y paginación server-side si el volumen supera los
+  100 registros que pide el admin en una sola página.
 - **Higiene:** `docs/` está en `.gitignore`; decidir si la documentación auxiliar debe versionarse.

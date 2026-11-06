@@ -149,8 +149,8 @@ export function Overview() {
       </ResourceCard>
 
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Productos, categorías y testimonios se guardan en este navegador (localStorage) mientras se
-        conectan a la base de datos. Las preguntas frecuentes ya se administran en el servidor.
+        Productos y categorías se guardan en este navegador (localStorage) mientras se conectan a la
+        base de datos. Los testimonios y las preguntas frecuentes ya se administran en el servidor.
       </p>
     </>
   )

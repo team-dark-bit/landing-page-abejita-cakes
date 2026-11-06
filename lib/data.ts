@@ -1,7 +1,7 @@
 export const business = {
   name: 'Abejita Cakes',
-  whatsappNumber: '51966123456',
-  whatsappDisplay: '+51 966 123 456',
+  whatsappNumber: '51902106328',
+  whatsappDisplay: '+51 902 106 328',
   address: 'Jr. 28 de Julio 345, Huamanga, Ayacucho',
   hours: [
     { days: 'Lunes a sábado', time: '8:00 a. m. – 8:00 p. m.' },
@@ -199,50 +199,4 @@ export const gallery: GalleryItem[] = [
   { src: '/images/gallery/g6.png', alt: 'Mesa de postres para evento corporativo con mini cheesecakes y alfajores', caption: 'Evento corporativo · Ayacucho', orientation: 'landscape' },
   { src: '/images/gallery/g7.png', alt: 'Torta infantil temática de dinosaurios en verde y crema', caption: 'Cumple de Thiago · dinosaurios', orientation: 'portrait' },
   { src: '/images/gallery/g8.png', alt: 'Naked cake con frutos rojos y flores sobre mesa de madera', caption: 'Aniversario en el campo', orientation: 'landscape' },
-]
-
-export type Testimonial = {
-  name: string
-  occasion: string
-  rating: number
-  text: string
-}
-
-export const testimonials: Testimonial[] = [
-  {
-    name: 'Rosario Quispe',
-    occasion: 'Cumpleaños de mi hija',
-    rating: 5,
-    text: 'La torta de abejita quedó idéntica a la foto que les mandé. Mi hija no quería que la cortáramos. Además, ¡estaba deliciosa!',
-  },
-  {
-    name: 'Carlos Huamán',
-    occasion: 'Reunión de trabajo',
-    rating: 5,
-    text: 'Pedí 200 bocaditos un viernes por la tarde y el sábado temprano ya estaban en la oficina. Los tequeños volaron.',
-  },
-  {
-    name: 'Milagros Palomino',
-    occasion: 'Matrimonio',
-    rating: 5,
-    text: 'Nos ayudaron a elegir sabores y diseño por WhatsApp sin ningún apuro. La torta fue el centro de atención de la boda.',
-  },
-  {
-    name: 'Jorge Cárdenas',
-    occasion: 'Aniversario',
-    rating: 4,
-    text: 'La tres leches es la mejor que he probado en Huamanga. Llegó puntual y bien empacada. Volveré a pedir.',
-  },
-  {
-    name: 'Lucía Gutiérrez',
-    occasion: 'Baby shower',
-    rating: 5,
-    text: 'La mesa dulce quedó preciosa y todo combinaba con la decoración. Los alfajores, una maravilla.',
-  },
-  {
-    name: 'Fiorella Tineo',
-    occasion: 'Día de la Madre',
-    rating: 5,
-    text: 'Encargué la torta floral para mi mamá y se emocionó muchísimo. Atención muy amable y rápida.',
-  },
 ]

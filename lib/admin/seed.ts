@@ -1,5 +1,5 @@
-import { categories, products, testimonials } from '@/lib/data'
-import type { AdminCategory, AdminProduct, AdminTestimonial } from './types'
+import { categories, products } from '@/lib/data'
+import type { AdminCategory, AdminProduct } from './types'
 
 const seededAt = '2026-10-01T12:00:00.000Z'
 const stamps = { createdAt: seededAt, updatedAt: seededAt }
@@ -23,13 +23,6 @@ export const seedProducts: AdminProduct[] = products.map((product) => ({
   image: product.image,
   featured: Boolean(product.tag),
   active: true,
-  ...stamps,
-}))
-
-export const seedTestimonials: AdminTestimonial[] = testimonials.map((testimonial, index) => ({
-  id: `testimonio-${index + 1}`,
-  ...testimonial,
-  published: true,
   ...stamps,
 }))
 

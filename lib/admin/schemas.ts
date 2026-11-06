@@ -48,6 +48,14 @@ export const testimonialSchema = z.object({
     .min(1, 'Mínimo 1 estrella')
     .max(5, 'Máximo 5 estrellas'),
   text: z.string().trim().min(20, 'Mínimo 20 caracteres').max(400, 'Máximo 400 caracteres'),
+  image: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === '' || /^https:\/\/\S+$/.test(value),
+      'Sube la foto desde este formulario o déjala vacía',
+    )
+    .transform((value) => (value === '' ? null : value)),
   published: z.boolean(),
 })
 

@@ -1,9 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { MessageSquareQuote, Pencil, Plus, SearchX, Star, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { FormField } from '@/components/admin/form-field'
+import { ImageField } from '@/components/admin/image-field'
 import {
   ConfirmDeleteDialog,
   EmptyState,
@@ -54,6 +56,21 @@ function Stars({ rating }: { rating: number }) {
   )
 }
 
+function ClientAvatar({ name, image }: { name: string; image: string | null }) {
+  return (
+    <span
+      className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary font-serif font-semibold"
+      aria-hidden="true"
+    >
+      {image ? (
+        <Image src={image} alt="" fill sizes="40px" className="object-cover" />
+      ) : (
+        name.trim().charAt(0).toUpperCase() || '?'
+      )}
+    </span>
+  )
+}
+
 export function TestimonialsManager() {
   const testimonials = useResource('testimonials')
   const [search, setSearch] = useState('')
@@ -79,7 +96,10 @@ export function TestimonialsManager() {
   async function handleSubmit(input: EntityInput<AdminTestimonial>) {
     try {
       if (editing) {
-        await testimonials.update(editing.id, input)
+        const payload: Partial<EntityInput<AdminTestimonial>> = { ...input }
+        // Keep the photo untouched unless the user picked, replaced or removed it.
+        if (input.image === editing.image) delete payload.image
+        await testimonials.update(editing.id, payload)
         toast.success('Testimonio actualizado', { description: input.name })
       } else {
         await testimonials.create(input)
@@ -198,9 +218,12 @@ export function TestimonialsManager() {
               {filtered.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="pl-4">
-                    <div className="flex min-w-40 flex-col">
-                      <span className="font-semibold">{item.name}</span>
-                      <span className="text-xs text-muted-foreground">{item.occasion}</span>
+                    <div className="flex min-w-48 items-center gap-3">
+                      <ClientAvatar key={item.image ?? 'sin-foto'} name={item.name} image={item.image} />
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{item.name}</span>
+                        <span className="text-xs text-muted-foreground">{item.occasion}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -286,6 +309,7 @@ function TestimonialForm({
     occasion: testimonial?.occasion ?? '',
     rating: testimonial ? String(testimonial.rating) : '5',
     text: testimonial?.text ?? '',
+    image: testimonial?.image ?? '',
     published: testimonial?.published ?? true,
   })
 
@@ -352,6 +376,16 @@ function TestimonialForm({
           onChange={(e) => setField('text', e.target.value)}
         />
       </FormField>
+      <ImageField
+        id="t-image"
+        label="Foto del cliente (opcional)"
+        value={values.image}
+        onChange={(value) => setField('image', value ?? '')}
+        folder="testimonials"
+        error={errors.image}
+        hint="Sin foto se muestra la inicial del nombre."
+        fallback={<span className="text-2xl">{values.name.trim().charAt(0).toUpperCase() || '?'}</span>}
+      />
       <SwitchRow id="t-published" label="Publicado" description="Visible en la página de inicio">
         <Switch id="t-published" checked={values.published} onCheckedChange={(v) => setField('published', v)} />
       </SwitchRow>

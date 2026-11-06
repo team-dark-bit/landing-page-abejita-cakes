@@ -61,6 +61,6 @@ export async function adminRequest(path: string, init: RequestInit = {}) {
     return await forward(res)
   } catch (error) {
     console.error(`[admin] no se pudo contactar la API (${path})`, error)
-    return fail(502, 'UPSTREAM_ERROR', 'No pudimos conectar con el servicio de preguntas frecuentes.')
+    return fail(502, 'UPSTREAM_ERROR', 'No pudimos conectar con el servicio de datos.')
   }
 }

@@ -1,5 +1,6 @@
 import { SiteHeader } from '@/components/site-header'
 import { getFaqs } from '@/lib/api/faqs'
+import { getTestimonials } from '@/lib/api/testimonials'
 import { Hero } from '@/components/hero'
 import { Catalog } from '@/components/catalog'
 import { Gallery } from '@/components/gallery'
@@ -9,14 +10,20 @@ import { Faq } from '@/components/faq'
 import { SiteFooter } from '@/components/site-footer'
 import { WhatsappFloat } from '@/components/whatsapp-float'
 
-// FAQ data is fetched live from the API on every request (no cache).
+// FAQ and testimonial data is fetched live from the API on every request (no cache).
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
-  const faqs = await getFaqs().catch((error) => {
-    console.error(error)
-    return []
-  })
+  const [faqs, testimonials] = await Promise.all([
+    getFaqs().catch((error) => {
+      console.error(error)
+      return []
+    }),
+    getTestimonials().catch((error) => {
+      console.error(error)
+      return []
+    }),
+  ])
 
   return (
     <>
@@ -25,7 +32,7 @@ export default async function Page() {
         <Hero />
         <Catalog />
         <Gallery />
-        <Testimonials />
+        <Testimonials items={testimonials} />
         <Contact />
         <Faq items={faqs} />
       </main>
