@@ -107,15 +107,17 @@ también el panel admin.
 
 **Fecha:** 2026-11
 
-**Contexto:** el admin persiste productos, categorías y testimonios en `localStorage`,
-pero el destino es el backend real.
+**Contexto:** el admin persistía productos, categorías y testimonios en `localStorage`,
+pero el destino era el backend real.
 
 **Decisión:** la UI consume la interfaz `Repository` (`lib/admin/repository.ts`); cambiar
-la implementación no requiere tocar componentes. `reset()` es opcional, para que los
-repositorios respaldados por API no expongan una restauración local inexistente.
+la implementación no requiere tocar componentes. Desde D-009 todos los recursos usan API,
+así que desaparecieron la fábrica de `localStorage`, el `reset()` opcional y el seed local.
 
-**Consecuencia:** migrar los recursos restantes es reemplazar las instancias en
-`lib/admin/repositories.ts`. Las FAQs ya usan API y no implementan `reset`.
+**Consecuencia:** migrar un recurso es escribir su `lib/admin/*-api.ts` y registrar la
+instancia en `lib/admin/repositories.ts`. La interfaz quedó parametrizada con el tipo de
+entrada de cada recurso (`Repository<T, TInput>`), para no enviar campos derivados como
+`slug`, `productCount` o `category`.
 
 ---
 
@@ -169,13 +171,40 @@ productos y categorías.
 
 ---
 
+## D-009 · Catálogo (productos y categorías) migrado a la API
+
+**Fecha:** 2026-11
+
+**Contexto:** el catálogo público seguía leyendo arrays mock de `lib/data.ts` y el admin
+guardaba productos y categorías en `localStorage`. Las secciones 2.1 y 2.3 del
+`backend-spec.md` ya exponen ambos recursos.
+
+**Decisión:** la landing pide `GET /api/v1/products` y `GET /api/v1/categories` en el
+servidor (`lib/api/products.ts`, `lib/api/categories.ts`) y baja la data como props a
+`Catalog` y `SiteFooter`. Los filtros usan `category.slug` (clave estable) y los conteos
+salen de los productos visibles, no de `productCount`. El admin usa el mismo patrón de
+proxy que FAQs y testimonios (`/api/admin/products`, `/api/admin/categories`).
+
+**Alternativas:** filtrar en cliente por `categoryId` — la vista pública no lo expone y es
+la clave interna; calcular el slug en el front — el backend lo genera y lo hace inmutable;
+seguir aceptando rutas locales de imagen — el contrato exige `publicUrl` del bucket.
+
+**Consecuencia:** `lib/data.ts` conserva solo datos estáticos (negocio y galería);
+`lib/admin/seed.ts` y `createLocalStorageRepository` se eliminaron. El formulario de
+categoría ya no edita el slug (solo lo muestra al editar) y el de producto sube la imagen
+con el firmador, sin poder dejarla vacía. El backend sigue siendo el dueño de la limpieza
+de imágenes (2.7.1).
+
+**Cuándo revisar:** si el catálogo supera los 100 registros que el admin pide en una sola
+página, o si se agregan filtros y paginación server-side en el panel.
+
+---
+
 ## Pendientes vinculados a decisiones
 
 - **D-003:** definir el umbral de tráfico o de cold starts que justifique reintroducir caché.
 - **D-003:** implementar el tag `faqs` y el endpoint de revalidación cuando se retome.
-- **D-006:** migrar productos y categorías a la API; luego retirar `lib/admin/seed.ts`
-  y `createLocalStorageRepository`, que quedarían sin uso.
 - **FAQs:** implementar `PUT /api/v1/admin/faqs/order` si se agrega reordenamiento en la UI.
-- **Testimonios:** evaluar filtros y paginación server-side si el volumen supera los
-  100 registros que pide el admin en una sola página.
+- **Catálogo:** evaluar filtros y paginación server-side en el admin si se superan los
+  100 productos o categorías.
 - **Higiene:** `docs/` está en `.gitignore`; decidir si la documentación auxiliar debe versionarse.

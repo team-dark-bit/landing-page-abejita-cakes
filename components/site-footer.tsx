@@ -1,9 +1,10 @@
 import { Logo } from './logo'
 import { SocialLinks } from './social-links'
-import { business, categories } from '@/lib/data'
+import { business } from '@/lib/data'
+import type { PublicCategory } from '@/lib/api/categories'
 import { whatsappLink } from '@/lib/whatsapp'
 
-export function SiteFooter() {
+export function SiteFooter({ categories }: { categories: PublicCategory[] }) {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-3 md:px-6">
@@ -19,9 +20,9 @@ export function SiteFooter() {
           <h2 className="font-serif text-lg font-semibold">Catálogo</h2>
           <ul className="flex flex-col gap-2">
             {categories.map((c) => (
-              <li key={c.id}>
+              <li key={c.slug}>
                 <a href="#catalogo" className="text-muted-foreground transition-colors hover:text-foreground">
-                  {c.label}
+                  {c.name}
                 </a>
               </li>
             ))}

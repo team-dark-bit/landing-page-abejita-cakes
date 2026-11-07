@@ -1,34 +1,5 @@
 import type { AdminTestimonial, EntityInput } from './types'
-
-type ApiErrorBody = {
-  error?: {
-    message?: string
-    details?: Record<string, string[]> | null
-  }
-}
-
-function describeError(body: unknown, status: number) {
-  const payload = body as ApiErrorBody | null
-  const details = payload?.error?.details
-  if (details) {
-    const messages = Object.entries(details).flatMap(([field, list]) =>
-      list.map((message) => `${field}: ${message}`),
-    )
-    if (messages.length > 0) return messages.join(' ')
-  }
-  return payload?.error?.message ?? `La operación falló (${status}).`
-}
-
-async function requestTestimonials(url: string, init?: RequestInit): Promise<unknown> {
-  const res = await fetch(url, {
-    ...init,
-    headers: { Accept: 'application/json', ...init?.headers },
-    cache: 'no-store',
-  })
-  const body = await res.json().catch(() => null)
-  if (!res.ok) throw new Error(describeError(body, res.status))
-  return body
-}
+import { jsonBody, requestJson } from './http'
 
 const testimonialUrl = (id: string) => `/api/admin/testimonials/${encodeURIComponent(id)}`
 
@@ -39,7 +10,7 @@ const testimonialUrl = (id: string) => `/api/admin/testimonials/${encodeURICompo
 const LIST_QUERY = '?pageSize=100&sort=-createdAt'
 
 export async function listTestimonials(): Promise<AdminTestimonial[]> {
-  const body = (await requestTestimonials(`/api/admin/testimonials${LIST_QUERY}`)) as {
+  const body = (await requestJson(`/api/admin/testimonials${LIST_QUERY}`)) as {
     data?: AdminTestimonial[] | { content?: AdminTestimonial[] }
   } | null
   const data = body?.data
@@ -51,11 +22,9 @@ export async function listTestimonials(): Promise<AdminTestimonial[]> {
 export async function createTestimonial(
   input: EntityInput<AdminTestimonial>,
 ): Promise<AdminTestimonial> {
-  const body = (await requestTestimonials('/api/admin/testimonials', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  })) as { data: AdminTestimonial }
+  const body = (await requestJson('/api/admin/testimonials', jsonBody('POST', input))) as {
+    data: AdminTestimonial
+  }
   return body.data
 }
 
@@ -67,14 +36,12 @@ export async function updateTestimonial(
   id: string,
   input: Partial<EntityInput<AdminTestimonial>>,
 ): Promise<AdminTestimonial> {
-  const body = (await requestTestimonials(testimonialUrl(id), {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  })) as { data: AdminTestimonial }
+  const body = (await requestJson(testimonialUrl(id), jsonBody('PATCH', input))) as {
+    data: AdminTestimonial
+  }
   return body.data
 }
 
 export async function removeTestimonial(id: string): Promise<void> {
-  await requestTestimonials(testimonialUrl(id), { method: 'DELETE' })
+  await requestJson(testimonialUrl(id), { method: 'DELETE' })
 }

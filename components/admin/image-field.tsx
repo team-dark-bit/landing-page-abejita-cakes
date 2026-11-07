@@ -17,6 +17,8 @@ type Props = {
   hint?: string
   fallback?: React.ReactNode
   disabled?: boolean
+  /** Los productos no pueden quedarse sin imagen. */
+  canClear?: boolean
 }
 
 export function ImageField({
@@ -29,6 +31,7 @@ export function ImageField({
   hint,
   fallback,
   disabled,
+  canClear = true,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -59,7 +62,7 @@ export function ImageField({
           ) : (
             (fallback ?? <ImageUp className="size-6 text-muted-foreground" aria-hidden="true" />)
           )}
-          {value && !uploading ? (
+          {value && canClear && !uploading ? (
             <button
               type="button"
               onClick={() => onChange(null)}

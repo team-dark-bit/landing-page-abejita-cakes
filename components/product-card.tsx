@@ -1,23 +1,18 @@
+import { useState } from 'react'
 import Image from 'next/image'
 import { Ruler } from 'lucide-react'
 import { WhatsappIcon } from './brand-icons'
-import type { Product } from '@/lib/data'
+import type { PublicProduct } from '@/lib/api/products'
 import { formatPrice, productWhatsappLink } from '@/lib/whatsapp'
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: PublicProduct }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl bg-card shadow-sm ring-1 ring-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 motion-reduce:hover:translate-y-0">
       <div className="relative aspect-4/3 overflow-hidden bg-muted">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
-        />
-        {product.tag && (
+        <ProductImage src={product.image} alt={product.name} />
+        {product.featured && (
           <span className="absolute top-3 left-3 rounded-full bg-card/95 px-3 py-1 text-xs font-bold text-foreground shadow-sm">
-            {product.tag}
+            Destacado
           </span>
         )}
       </div>
@@ -47,5 +42,28 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
     </article>
+  )
+}
+
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <span className="flex size-full items-center justify-center bg-muted text-xs text-muted-foreground">
+        Sin imagen
+      </span>
+    )
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+      className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
+      onError={() => setFailed(true)}
+    />
   )
 }

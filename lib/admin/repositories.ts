@@ -1,4 +1,4 @@
-import { createLocalStorageRepository, type Repository } from './repository'
+import type { Repository } from './repository'
 import { createFaq, listFaqs, removeFaq, updateFaq } from './faqs-api'
 import {
   createTestimonial,
@@ -6,27 +6,52 @@ import {
   removeTestimonial,
   updateTestimonial,
 } from './testimonials-api'
-import { seedCategories, seedProducts } from './seed'
-import type { AdminCategory, AdminFaq, AdminProduct, AdminTestimonial } from './types'
+import { createCategory, listCategories, removeCategory, updateCategory } from './categories-api'
+import { createProduct, listProducts, removeProduct, updateProduct } from './products-api'
+import type {
+  AdminCategory,
+  AdminCategoryInput,
+  AdminFaq,
+  AdminProduct,
+  AdminProductInput,
+  AdminTestimonial,
+  EntityInput,
+} from './types'
 
-const faqRepository: Repository<AdminFaq> = {
-  list: listFaqs,
-  create: createFaq,
-  update: updateFaq,
-  remove: removeFaq,
+// Todos los recursos viven en la API; el navegador solo habla con el proxy del
+// mismo origen (`/api/admin/**`), que adjunta el token de Supabase.
+
+const productRepository: Repository<AdminProduct, AdminProductInput> = {
+  list: listProducts,
+  create: createProduct,
+  update: updateProduct,
+  remove: removeProduct,
 }
 
-const testimonialRepository: Repository<AdminTestimonial> = {
+const categoryRepository: Repository<AdminCategory, AdminCategoryInput> = {
+  list: listCategories,
+  create: createCategory,
+  update: updateCategory,
+  remove: removeCategory,
+}
+
+const testimonialRepository: Repository<AdminTestimonial, EntityInput<AdminTestimonial>> = {
   list: listTestimonials,
   create: createTestimonial,
   update: updateTestimonial,
   remove: removeTestimonial,
 }
 
+const faqRepository: Repository<AdminFaq, EntityInput<AdminFaq>> = {
+  list: listFaqs,
+  create: createFaq,
+  update: updateFaq,
+  remove: removeFaq,
+}
+
 export const repositories = {
-  products: createLocalStorageRepository<AdminProduct>('products', seedProducts),
-  categories: createLocalStorageRepository<AdminCategory>('categories', seedCategories),
-  // Testimonios y FAQs: CRUD contra la API (a través del proxy del servidor). Sin `reset`.
+  products: productRepository,
+  categories: categoryRepository,
   testimonials: testimonialRepository,
   faqs: faqRepository,
 }

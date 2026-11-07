@@ -1,21 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { ArrowRight, Loader2, RotateCcw, Star } from 'lucide-react'
-import { toast } from 'sonner'
+import { ArrowRight, Star } from 'lucide-react'
 import { adminNav } from './nav-items'
 import { PageHeader, ResourceCard } from './resource-ui'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { resetAllResources, useResource } from '@/hooks/use-resource'
+import { useResource } from '@/hooks/use-resource'
 
 export function Overview() {
   const products = useResource('products')
   const categories = useResource('categories')
   const testimonials = useResource('testimonials')
   const faqs = useResource('faqs')
-  const [resetting, setResetting] = useState(false)
 
   const loading = products.isLoading || categories.isLoading || testimonials.isLoading || faqs.isLoading
 
@@ -44,33 +40,11 @@ export function Overview() {
 
   const featured = products.items.filter((p) => p.featured)
 
-  async function handleReset() {
-    setResetting(true)
-    try {
-      await resetAllResources()
-      toast.success('Datos de ejemplo restaurados')
-    } catch {
-      toast.error('No se pudieron restaurar los datos')
-    } finally {
-      setResetting(false)
-    }
-  }
-
   return (
     <>
       <PageHeader
         title="Hola, bienvenida de vuelta"
         description="Un vistazo rápido al contenido que se muestra en el sitio de Abejita Cakes."
-        action={
-          <Button variant="outline" className="rounded-full" onClick={handleReset} disabled={resetting}>
-            {resetting ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : (
-              <RotateCcw className="size-4" aria-hidden="true" />
-            )}
-            Restaurar datos de ejemplo
-          </Button>
-        }
       />
 
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -149,8 +123,8 @@ export function Overview() {
       </ResourceCard>
 
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Productos y categorías se guardan en este navegador (localStorage) mientras se conectan a la
-        base de datos. Los testimonios y las preguntas frecuentes ya se administran en el servidor.
+        Todo el contenido del sitio se administra en el servidor: productos, categorías,
+        testimonios y preguntas frecuentes se leen y escriben en la API.
       </p>
     </>
   )

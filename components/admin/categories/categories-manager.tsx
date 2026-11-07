@@ -32,28 +32,21 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
-import { useResource } from '@/hooks/use-resource'
+import { useResource, refreshResource } from '@/hooks/use-resource'
 import { useZodForm } from '@/hooks/use-zod-form'
-import { categorySchema, slugify } from '@/lib/admin/schemas'
-import type { AdminCategory, EntityInput } from '@/lib/admin/types'
+import { categorySchema } from '@/lib/admin/schemas'
+import type { AdminCategory, AdminCategoryInput } from '@/lib/admin/types'
 
 type StatusFilter = 'all' | 'active' | 'inactive'
 
 export function CategoriesManager() {
   const categories = useResource('categories')
-  const products = useResource('products')
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<AdminCategory | null>(null)
   const [deleting, setDeleting] = useState<AdminCategory | null>(null)
-
-  const productCount = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const p of products.items) counts.set(p.categoryId, (counts.get(p.categoryId) ?? 0) + 1)
-    return counts
-  }, [products.items])
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -67,7 +60,7 @@ export function CategoriesManager() {
     setFormOpen(true)
   }
 
-  async function handleSubmit(input: EntityInput<AdminCategory>) {
+  async function handleSubmit(input: AdminCategoryInput) {
     try {
       if (editing) {
         await categories.update(editing.id, input)
@@ -76,6 +69,8 @@ export function CategoriesManager() {
         await categories.create(input)
         toast.success('Categoría creada', { description: input.name })
       }
+      // Los productos muestran el nombre de su categoría.
+      await refreshResource('products')
       setFormOpen(false)
     } catch (error) {
       toast.error('No se pudo guardar la categoría', { description: errorMessage(error) })
@@ -83,10 +78,10 @@ export function CategoriesManager() {
   }
 
   function requestDelete(category: AdminCategory) {
-    const count = productCount.get(category.id) ?? 0
-    if (count > 0) {
+    // `productCount` del admin incluye activos e inactivos.
+    if (category.productCount > 0) {
       toast.error('Esta categoría tiene productos', {
-        description: `Reasigna o elimina sus ${count} producto(s) antes de borrarla.`,
+        description: `Mueve o elimina sus ${category.productCount} producto(s) antes de borrarla.`,
       })
       return
     }
@@ -103,7 +98,7 @@ export function CategoriesManager() {
     }
   }
 
-  const isLoading = categories.isLoading || products.isLoading
+  const isLoading = categories.isLoading
 
   return (
     <>
@@ -187,7 +182,7 @@ export function CategoriesManager() {
                   <TableCell>
                     <code className="rounded-md bg-muted px-1.5 py-0.5 text-xs">{category.slug}</code>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{productCount.get(category.id) ?? 0}</TableCell>
+                  <TableCell className="text-right tabular-nums">{category.productCount}</TableCell>
                   <TableCell>
                     <StatusPill on={category.active} onLabel="Activa" offLabel="Inactiva" />
                   </TableCell>
@@ -226,15 +221,12 @@ export function CategoriesManager() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editing ? 'Editar categoría' : 'Nueva categoría'}</DialogTitle>
-            <DialogDescription>El slug se usa en enlaces y filtros del catálogo.</DialogDescription>
+            <DialogDescription>
+              El identificador de URL (slug) lo genera el backend y no cambia al renombrar.
+            </DialogDescription>
           </DialogHeader>
           {formOpen && (
-            <CategoryForm
-              key={editing?.id ?? 'new'}
-              category={editing}
-              existing={categories.items}
-              onSubmit={handleSubmit}
-            />
+            <CategoryForm key={editing?.id ?? 'new'} category={editing} onSubmit={handleSubmit} />
           )}
         </DialogContent>
       </Dialog>
@@ -252,18 +244,14 @@ export function CategoriesManager() {
 
 function CategoryForm({
   category,
-  existing,
   onSubmit,
 }: {
   category: AdminCategory | null
-  existing: AdminCategory[]
-  onSubmit: (input: EntityInput<AdminCategory>) => Promise<void>
+  onSubmit: (input: AdminCategoryInput) => Promise<void>
 }) {
   const [pending, setPending] = useState(false)
-  const [slugTouched, setSlugTouched] = useState(Boolean(category))
-  const { values, errors, setField, setFieldError, validate } = useZodForm(categorySchema, {
+  const { values, errors, setField, validate } = useZodForm(categorySchema, {
     name: category?.name ?? '',
-    slug: category?.slug ?? '',
     description: category?.description ?? '',
     active: category?.active ?? true,
   })
@@ -272,10 +260,6 @@ function CategoryForm({
     event.preventDefault()
     const data = validate()
     if (!data) return
-    if (existing.some((c) => c.slug === data.slug && c.id !== category?.id)) {
-      setFieldError('slug', 'Ya existe una categoría con este slug')
-      return
-    }
     setPending(true)
     try {
       await onSubmit(data)
@@ -292,24 +276,24 @@ function CategoryForm({
           value={values.name}
           aria-invalid={Boolean(errors.name)}
           className="h-10"
-          onChange={(e) => {
-            setField('name', e.target.value)
-            if (!slugTouched) setField('slug', slugify(e.target.value))
-          }}
+          onChange={(e) => setField('name', e.target.value)}
         />
       </FormField>
-      <FormField label="Slug" htmlFor="cat-slug" error={errors.slug} hint="Se genera a partir del nombre">
-        <Input
-          id="cat-slug"
-          value={values.slug}
-          aria-invalid={Boolean(errors.slug)}
-          className="h-10 font-mono text-sm"
-          onChange={(e) => {
-            setSlugTouched(true)
-            setField('slug', e.target.value)
-          }}
-        />
-      </FormField>
+      {category && (
+        <FormField
+          label="Slug"
+          htmlFor="cat-slug"
+          hint="Identificador de URL. No cambia al renombrar la categoría."
+        >
+          <Input
+            id="cat-slug"
+            value={category.slug}
+            readOnly
+            disabled
+            className="h-10 font-mono text-sm"
+          />
+        </FormField>
+      )}
       <FormField
         label="Descripción (opcional)"
         htmlFor="cat-description"

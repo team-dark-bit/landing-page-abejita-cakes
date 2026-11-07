@@ -19,8 +19,8 @@ import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useResource } from '@/hooks/use-resource'
-import type { AdminProduct, EntityInput } from '@/lib/admin/types'
+import { useResource, refreshResource } from '@/hooks/use-resource'
+import type { AdminProduct, AdminProductInput } from '@/lib/admin/types'
 
 type StatusFilter = 'all' | 'active' | 'inactive' | 'featured'
 
@@ -55,11 +55,6 @@ export function ProductsManager() {
       .filter((p) => !term || `${p.name} ${p.description} ${p.size}`.toLowerCase().includes(term))
   }, [products.items, search, category, status])
 
-  const imageSuggestions = useMemo(
-    () => Array.from(new Set(products.items.map((p) => p.image))),
-    [products.items],
-  )
-
   const hasFilters = search !== '' || category !== 'all' || status !== 'all'
 
   function openCreate() {
@@ -67,15 +62,21 @@ export function ProductsManager() {
     setFormOpen(true)
   }
 
-  async function handleSubmit(input: EntityInput<AdminProduct>) {
+  async function handleSubmit(input: AdminProductInput) {
     try {
       if (editing) {
-        await products.update(editing.id, input)
+        const payload: Partial<AdminProductInput> = { ...input }
+        // La imagen es obligatoria: si no cambió, se omite para no reemplazarla
+        // (el backend borraría el objeto anterior tras el commit).
+        if (input.image === editing.image) delete payload.image
+        await products.update(editing.id, payload)
         toast.success('Producto actualizado', { description: input.name })
       } else {
         await products.create(input)
         toast.success('Producto creado', { description: input.name })
       }
+      // Los conteos por categoría dependen de los productos.
+      await refreshResource('categories')
       setFormOpen(false)
     } catch (error) {
       toast.error('No se pudo guardar el producto', { description: errorMessage(error) })
@@ -95,6 +96,7 @@ export function ProductsManager() {
     if (!deleting) return
     try {
       await products.remove(deleting.id)
+      await refreshResource('categories')
       toast.success('Producto eliminado', { description: deleting.name })
     } catch (error) {
       toast.error('No se pudo eliminar', { description: errorMessage(error) })
@@ -217,7 +219,7 @@ export function ProductsManager() {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {categoryName.get(product.categoryId) ?? 'Sin categoría'}
+                    {product.category?.name ?? categoryName.get(product.categoryId) ?? 'Sin categoría'}
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">
                     {priceFormat.format(product.priceFrom)}
@@ -268,7 +270,6 @@ export function ProductsManager() {
         onOpenChange={setFormOpen}
         product={editing}
         categories={categories.items}
-        imageSuggestions={imageSuggestions}
         onSubmit={handleSubmit}
       />
       <ConfirmDeleteDialog

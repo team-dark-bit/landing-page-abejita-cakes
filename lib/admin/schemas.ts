@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
-const imagePath = z
+const imageUrl = z
   .string()
   .trim()
   .min(1, 'Agrega una imagen')
   .refine(
-    (value) => value.startsWith('/') || /^https:\/\/\S+$/.test(value),
-    'Usa una ruta local (/images/...) o una URL https://',
+    (value) => /^https:\/\/\S+$/.test(value),
+    'Sube la imagen desde este formulario: debe ser la URL pública del bucket',
   )
 
 export const productSchema = z.object({
@@ -21,20 +21,19 @@ export const productSchema = z.object({
   priceFrom: z.coerce
     .number({ error: 'Ingresa un precio válido' })
     .positive('El precio debe ser mayor a 0')
-    .max(10000, 'El precio parece demasiado alto'),
-  image: imagePath,
+    .max(10000, 'El precio parece demasiado alto')
+    .refine(
+      (value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-9,
+      'Usa máximo 2 decimales',
+    ),
+  image: imageUrl,
   featured: z.boolean(),
   active: z.boolean(),
 })
 
+// El slug lo genera el backend a partir del nombre y no se envía nunca.
 export const categorySchema = z.object({
   name: z.string().trim().min(3, 'Mínimo 3 caracteres').max(50, 'Máximo 50 caracteres'),
-  slug: z
-    .string()
-    .trim()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Solo minúsculas, números y guiones'),
   description: z.string().trim().max(160, 'Máximo 160 caracteres'),
   active: z.boolean(),
 })
@@ -78,13 +77,3 @@ export const loginSchema = z.object({
   email: z.email('Ingresa un correo válido'),
   password: z.string().min(1, 'Ingresa tu contraseña'),
 })
-
-export function slugify(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ImageOff } from 'lucide-react'
 import { FormField } from '@/components/admin/form-field'
+import { ImageField } from '@/components/admin/image-field'
 import { SubmitButton, SwitchRow } from '@/components/admin/resource-ui'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,15 +20,14 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useZodForm } from '@/hooks/use-zod-form'
 import { productSchema } from '@/lib/admin/schemas'
-import type { AdminCategory, AdminProduct, EntityInput } from '@/lib/admin/types'
+import type { AdminCategory, AdminProduct, AdminProductInput } from '@/lib/admin/types'
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   product: AdminProduct | null
   categories: AdminCategory[]
-  imageSuggestions: string[]
-  onSubmit: (input: EntityInput<AdminProduct>) => Promise<void>
+  onSubmit: (input: AdminProductInput) => Promise<void>
 }
 
 export function ProductFormDialog({ open, onOpenChange, product, ...rest }: Props) {
@@ -50,11 +49,9 @@ export function ProductFormDialog({ open, onOpenChange, product, ...rest }: Prop
 function ProductForm({
   product,
   categories,
-  imageSuggestions,
   onSubmit,
 }: Omit<Props, 'open' | 'onOpenChange'>) {
   const [pending, setPending] = useState(false)
-  const [previewFailed, setPreviewFailed] = useState(false)
   const { values, errors, setField, validate } = useZodForm(productSchema, {
     name: product?.name ?? '',
     categoryId: product?.categoryId ?? '',
@@ -120,7 +117,7 @@ function ProductForm({
             type="number"
             inputMode="decimal"
             min={0}
-            step="0.5"
+            step="0.01"
             value={values.priceFrom}
             onChange={(e) => setField('priceFrom', e.target.value)}
             className="h-10"
@@ -160,44 +157,17 @@ function ProductForm({
           />
         </FormField>
 
-        <div className="flex gap-4 sm:col-span-2">
-          <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">
-            {values.image && !previewFailed ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={values.image}
-                alt="Vista previa del producto"
-                className="size-full object-cover"
-                onError={() => setPreviewFailed(true)}
-              />
-            ) : (
-              <ImageOff className="size-5 text-muted-foreground" aria-hidden="true" />
-            )}
-          </div>
-          <FormField
+        <div className="sm:col-span-2">
+          <ImageField
+            id="image"
             label="Imagen"
-            htmlFor="image"
+            value={values.image === '' ? null : values.image}
+            onChange={(value) => setField('image', value ?? '')}
+            folder="products"
             error={errors.image}
-            hint="Ruta local (/images/products/...) o URL https://"
-            className="flex-1"
-          >
-            <Input
-              id="image"
-              list="image-suggestions"
-              value={values.image}
-              onChange={(e) => {
-                setPreviewFailed(false)
-                setField('image', e.target.value)
-              }}
-              className="h-10"
-              {...invalid('image')}
-            />
-            <datalist id="image-suggestions">
-              {imageSuggestions.map((src) => (
-                <option key={src} value={src} />
-              ))}
-            </datalist>
-          </FormField>
+            hint="JPG, PNG o WebP · máx. 5 MB"
+            canClear={false}
+          />
         </div>
 
         <SwitchRow id="featured" label="Destacado" description="Aparece primero en el catálogo">
